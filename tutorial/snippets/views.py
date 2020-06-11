@@ -8,27 +8,43 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+# use mixin to simplify the views
+from rest_framework import mixins
+from rest_framework import generics
+
+
 from snippets.models import Snippet
 from snippets.serializers import SnippetSerializer
 
 # Create your views here.
 
-class SnippetList(APIView):
+# class SnippetList(APIView):
+class SnippetList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
     """
     List all code snippets, or create a new snippet.
     """
 
-    def get(self, request, format=None):
-        snippets = Snippet.objects.all()
-        serializer = SnippetSerializer(snippets, many=True)
-        return JsonResponse(serializer.data, safe=False)
+    # mixin must remember to put like this
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
 
-    def post(self, request, format=None):
-        serializer = SnippetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+        # snippets = Snippet.objects.all()
+        # serializer = SnippetSerializer(snippets, many=True)
+        # return JsonResponse(serializer.data, safe=False)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+        # serializer = SnippetSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # @csrf_exempt
 # @api_view(['GET', 'POST'])
@@ -51,33 +67,46 @@ class SnippetList(APIView):
 #         # return JsonResponse(serializer.errors, status=400)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SnippetDetail(APIView):
+class SnippetDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
 
-    def get_object(self, pk):
+    # must add in for mixin class
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
 
-        try:
-            return Snippet.objects.get(pk=pk)
-        except Snippet.DoesNotExist :
-            raise Http404 
+    # def get_object(self, pk):
 
-    def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet)
-        return Response(serializer.data)
+        # try:
+        #     return Snippet.objects.get(pk=pk)
+        # except Snippet.DoesNotExist :
+        #     raise Http404 
 
-    def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet, data=request.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+        # snippet = self.get_object(pk)
+        # serializer = SnippetSerializer(snippet)
+        # return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+        # snippet = self.get_object(pk)
+        # serializer = SnippetSerializer(snippet, data=request.data)
+
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data)
+        # return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+        # snippet = self.get_object(pk)
+        # snippet.delete()
+        # return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # @csrf_exempt
