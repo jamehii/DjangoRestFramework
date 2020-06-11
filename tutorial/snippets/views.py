@@ -18,10 +18,18 @@ from snippets.serializers import SnippetSerializer
 
 # Create your views here.
 
+# To simplify our view code further, we can use this view (notes: not mixins anymore):
+#   generics.ListCreateAPIView
+# We don't even need to define function like: get, post anymore
+# Super nice !!
+
+
 # class SnippetList(APIView):
-class SnippetList(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  generics.GenericAPIView):
+# class SnippetList(mixins.ListModelMixin,
+#                   mixins.CreateModelMixin,
+#                   generics.GenericAPIView):
+
+class SnippetList(generics.ListCreateAPIView):
     """
     List all code snippets, or create a new snippet.
     """
@@ -30,15 +38,15 @@ class SnippetList(mixins.ListModelMixin,
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    # def get(self, request, *args, **kwargs):
+    #     return self.list(request, *args, **kwargs)
 
         # snippets = Snippet.objects.all()
         # serializer = SnippetSerializer(snippets, many=True)
         # return JsonResponse(serializer.data, safe=False)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    # def post(self, request, *args, **kwargs):
+    #     return self.create(request, *args, **kwargs)
 
         # serializer = SnippetSerializer(data=request.data)
         # if serializer.is_valid():
@@ -67,11 +75,18 @@ class SnippetList(mixins.ListModelMixin,
 #         # return JsonResponse(serializer.errors, status=400)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SnippetDetail(mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    generics.GenericAPIView):
 
+# To simplify our view code further, we can use this view (notes: not mixins anymore):
+#   generics.RetrieveUpdateDestroyAPIView
+# We don't even need to define function like: get, put, delete
+# Super nice !!
+
+# class SnippetDetail(mixins.RetrieveModelMixin,
+#                     mixins.UpdateModelMixin,
+#                     mixins.DestroyModelMixin,
+#                     generics.GenericAPIView):
+
+class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     # must add in for mixin class
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
@@ -83,15 +98,15 @@ class SnippetDetail(mixins.RetrieveModelMixin,
         # except Snippet.DoesNotExist :
         #     raise Http404 
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+    # def get(self, request, *args, **kwargs):
+    #     return self.retrieve(request, *args, **kwargs)
 
         # snippet = self.get_object(pk)
         # serializer = SnippetSerializer(snippet)
         # return Response(serializer.data)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    # def put(self, request, *args, **kwargs):
+    #     return self.update(request, *args, **kwargs)
 
         # snippet = self.get_object(pk)
         # serializer = SnippetSerializer(snippet, data=request.data)
@@ -101,8 +116,8 @@ class SnippetDetail(mixins.RetrieveModelMixin,
         #     return Response(serializer.data)
         # return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+    # def delete(self, request, *args, **kwargs):
+    #     return self.destroy(request, *args, **kwargs)
 
         # snippet = self.get_object(pk)
         # snippet.delete()
