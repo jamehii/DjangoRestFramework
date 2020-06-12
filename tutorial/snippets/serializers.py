@@ -15,9 +15,25 @@ from django.contrib.auth.models import User
 
 class SnippetSerializer(serializers.ModelSerializer):
 
+    owner = serializers.ReadOnlyField(source="owner.username")
+
     class Meta:
         model = Snippet
-        fields = ['id', 'title', 'code', 'linenos', 'language', 'style']
+        fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner']
+
+    # We need to override this special method in order to pass in "current user object" to serializer,
+    # so that serializer can have "current user object" passed in to create "Snippet object"
+
+    # This is the detailed explanation:
+    # Since "Snippet" has a member "owner", this "owner" member is ForeignKey to User
+    # Now, whenever an "instance of Snippet" is created by serializer, serializer needs to pass "Snippet" the "current user object" as well
+    # so that Snippet "owner" member can be linked to "current user object"
+
+    def perform_create(self, serializer):
+
+        # Notes: The variable name "owner" MUST BE THE SAME NAME defined in "Snipped Model"
+        serializer.save(owner=self.request.user)
+
 
 
     # With "ModelSerializer", both create & update are auto-implemented 
@@ -44,6 +60,11 @@ class SnippetSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
+    # NOTES:
+    # variable name "snippets" MUST MATCH to the "related_name" defined in Snippet's model
+    # If "related_name" is not set in Snippet's model, then default related name "snippet_set" is used
+
     snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
 
     class Meta:
