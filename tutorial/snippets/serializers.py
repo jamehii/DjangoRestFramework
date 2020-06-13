@@ -15,13 +15,17 @@ from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
 #
 # Changed to ModelSerializer
 
-class SnippetSerializer(serializers.ModelSerializer):
+# class SnippetSerializer(serializers.ModelSerializer):
+
+# Change to HyperlinkedModelSerializer
+class SnippetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = serializers.ReadOnlyField(source="owner.username")
+    highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
 
     class Meta:
         model = Snippet
-        fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner']
+        fields = ['id', 'highlight', 'title', 'code', 'linenos', 'language', 'style', 'owner']
 
     # With "ModelSerializer", both create & update are auto-implemented 
 
@@ -46,13 +50,20 @@ class SnippetSerializer(serializers.ModelSerializer):
     #     return instance
 
 
-class UserSerializer(serializers.ModelSerializer):
+# class UserSerializer(serializers.ModelSerializer):
+
+# Changed to use HyperlinkedModelSerializer
+class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     # NOTES:
     # variable name "snippets" MUST MATCH to the "related_name" defined in Snippet's model
     # If "related_name" is not set in Snippet's model, then default related name "snippet_set" is used
 
-    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+    # snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+    snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+
+    # Nested relationships use below
+    # snippets = SnippetSerializer(many=True, read_only=True)
 
     class Meta:
         model = User

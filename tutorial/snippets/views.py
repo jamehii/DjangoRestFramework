@@ -5,9 +5,11 @@ from django.contrib.auth.models import User
 
 from rest_framework.parsers import JSONParser
 from rest_framework import status
-# from rest_framework.decorators import api_view
+from rest_framework import renderers
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 # use mixin to simplify the views
 from rest_framework import mixins
@@ -33,6 +35,14 @@ from snippets.serializers import SnippetSerializer, UserSerializer
 # class SnippetList(mixins.ListModelMixin,
 #                   mixins.CreateModelMixin,
 #                   generics.GenericAPIView):
+
+@api_view(['GET',])
+def api_root(request, format=None):
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'snippets': reverse('snippet-list', request=request, format=format)
+    })
+
 
 class SnippetList(generics.ListCreateAPIView):
     """
@@ -181,9 +191,37 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
 #         # return HttpResponse(status=204)
 #         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class SnippetHighlight(generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    renderer_classes = [renderers.StaticHTMLRenderer]
+    # lookup_field = 'pk'             # This is the field on the "target" should be used for lookup
+    # lookup_url_kwarg = 'primarykey' # This corresponds to the name used in urls param <int:primarykey>
+
+    def get(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+        # NOTES: StaticHTMLRenederer will actually render the "Response" in HTML form
+        # If you return a "HTML" format, then it will be rendered accordingly
+
+        # return Response(
+        #     "<!DOCTYPE html> \
+        #     <html> \
+        #         <head> \
+        #             <title>Static page</title> \
+        #         </head> \
+        #         <body> \
+        #             <h1>This static page is rendered by StaticHTMLRenderer</h1> \
+        #             <p>This is nice !!</p> \
+        #         </body> \
+        #     </html>"
+        # )
+
+
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
