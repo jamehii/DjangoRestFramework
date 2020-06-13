@@ -13,6 +13,10 @@ from rest_framework.response import Response
 from rest_framework import mixins
 from rest_framework import generics
 
+# permissions
+from rest_framework import permissions
+from snippets.permissions import IsOwnerOrReadOnly
+
 
 from snippets.models import Snippet
 from snippets.serializers import SnippetSerializer, UserSerializer
@@ -38,6 +42,23 @@ class SnippetList(generics.ListCreateAPIView):
     # mixin must remember to put like this
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    
+    # authenticated requests get read-write access
+    # unauthenticated requests get read-only access.
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    # We need to override this special method in order to pass in "current user object" to serializer,
+    # so that serializer can have "current user object" passed in to create "Snippet object"
+
+    # This is the detailed explanation:
+    # Since "Snippet" has a member "owner", this "owner" member is ForeignKey to User
+    # Now, whenever an "instance of Snippet" is created by serializer, serializer needs to pass "Snippet" the "current user object" as well
+    # so that Snippet "owner" member can be linked to "current user object"
+
+    def perform_create(self, serializer):
+
+        # Notes: The variable name "owner" MUST BE THE SAME NAME defined in "Snipped Model"
+        serializer.save(owner=self.request.user)
 
     # def get(self, request, *args, **kwargs):
     #     return self.list(request, *args, **kwargs)
@@ -91,6 +112,7 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     # must add in for mixin class
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     # def get_object(self, pk):
 

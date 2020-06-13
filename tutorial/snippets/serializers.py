@@ -1,7 +1,9 @@
+from django.contrib.auth.models import User
+
 from rest_framework import serializers
+
 from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
 
-from django.contrib.auth.models import User
 
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
@@ -20,21 +22,6 @@ class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
         fields = ['id', 'title', 'code', 'linenos', 'language', 'style', 'owner']
-
-    # We need to override this special method in order to pass in "current user object" to serializer,
-    # so that serializer can have "current user object" passed in to create "Snippet object"
-
-    # This is the detailed explanation:
-    # Since "Snippet" has a member "owner", this "owner" member is ForeignKey to User
-    # Now, whenever an "instance of Snippet" is created by serializer, serializer needs to pass "Snippet" the "current user object" as well
-    # so that Snippet "owner" member can be linked to "current user object"
-
-    def perform_create(self, serializer):
-
-        # Notes: The variable name "owner" MUST BE THE SAME NAME defined in "Snipped Model"
-        serializer.save(owner=self.request.user)
-
-
 
     # With "ModelSerializer", both create & update are auto-implemented 
 
