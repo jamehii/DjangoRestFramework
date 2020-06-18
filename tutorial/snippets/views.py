@@ -226,3 +226,48 @@ class UserList(generics.ListAPIView):
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+# Combine both:
+#  1. UserList
+#  2. UserDetail
+# to viewsets.ReadOnlyViewset
+
+# ReadOnlyViewset will handle the GET request for:
+#   1. list of instances 
+#   2. single instance ( default: lookup_field = 'pk' )
+
+from rest_framework import viewsets
+from rest_framework.decorators import action
+
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
+    # respond to GET requests by default
+    # use the "methods" argument if we wanted an action that responded to POST requests.
+    # URLs for custom actions by default depend on the method name itself
+    # you can include "url_path" as a decorator keyword argument.
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `detail` actions.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    

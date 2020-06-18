@@ -50,6 +50,13 @@ class SnippetSerializer(serializers.HyperlinkedModelSerializer):
     #     return instance
 
 
+class StringRepresentation(serializers.Field):
+
+    def to_representation(self, instance):
+        if ( type(instance) is not str):
+            return str(instance)
+        return str(instance)
+
 # class UserSerializer(serializers.ModelSerializer):
 
 # Changed to use HyperlinkedModelSerializer
@@ -61,6 +68,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     # snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
     snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+    id = StringRepresentation()
 
     # Nested relationships use below
     # snippets = SnippetSerializer(many=True, read_only=True)
@@ -68,3 +76,4 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'snippets']
+
